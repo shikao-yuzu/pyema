@@ -15,6 +15,8 @@ python -m pip install --upgrade setuptools
 
 pip install numpy==1.18.0
 pip install matplotlib==3.1.2
+pip install requests==2.22.0
+pip install beautifulsoup4==4.8.2
 
 pip freeze
 
