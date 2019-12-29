@@ -13,6 +13,7 @@ rem install dependency package
 python -m pip install --upgrade pip
 python -m pip install --upgrade setuptools
 
+pip install pytz==2019.3
 pip install numpy==1.18.0
 pip install matplotlib==3.1.2
 pip install requests==2.22.0
