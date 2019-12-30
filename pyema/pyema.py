@@ -34,14 +34,14 @@ def get_latest_obs_time() -> tuple:
     day = utc_obs.strftime("%d").lstrip("0")
 
     # 観測時
-    hour = utc_obs.strftime("%H").lstrip("0")
+    hour = utc_obs.strftime("%H")
 
     # 観測日時
     time = day + hour
 
     # エコー
-    print('[Time(now)] ' + str(utc_now))
-    print('[Time(obs)] ' + str(utc_obs))
+    print('[UTC-Time(now)] ' + str(utc_now))
+    print('[UTC-Time(obs)] ' + str(utc_obs))
 
     return year, month, time
 
@@ -62,6 +62,9 @@ def get_emagram_text() -> list:
                   + year + '&MONTH=' + month + '&FROM=' + time + '&TO=' + time \
                   + '&STNM=' + station
 
+    # エコー
+    print('[URL          ] ' + url_emagram)
+
     # Webサイトにgetリクエストで送信し情報を取得
     r = requests.get(url_emagram)
 
@@ -78,8 +81,7 @@ def get_emagram_text() -> list:
     data = soup.find(name='pre').get_text()
 
     # エコー
-    print('[URL      ] ' + url_emagram)
-    print('[Title    ] ' + title)
+    print('[Title        ] ' + title)
     print(data)
 
     return data.splitlines()
