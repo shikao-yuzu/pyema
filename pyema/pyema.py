@@ -1,8 +1,18 @@
 from pytz import timezone
 from datetime import datetime
 import numpy as np
+import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
 import requests
+
+# ラジオゾンデ観測データ(text形式)の先頭スキップ数
+SKIP_LINE_SONDE_TXT    = 4
+# ラジオゾンデ観測データ(text形式)の1行の文字数
+WORDS_LINE_SONDE_TXT   = 77
+# ラジオゾンデ観測データ(text形式)の1行のカラム数
+N_COLUMN_SONDE_TXT     = 11
+# ラジオゾンデ観測データ(text形式)の1カラムの文字数
+WORDS_COLUMN_SONDE_TXT = 7
 
 
 def get_latest_obs_time() -> tuple:
@@ -87,9 +97,62 @@ def get_emagram_text() -> list:
     return data.splitlines()
 
 
+def parse_emagram_text(sonde_txt: list):
+    """
+    @brief:
+      ラジオゾンデ観測データ(text形式)をパースしてnumpy形式で保存します
+    """
+    pres_lst    = []  # 気圧 [hPa]
+    height_lst  = []  # 高度 [m]
+    temp_lst    = []  # 温度 [deg]
+    dewtemp_lst = []  # 露点温度 [deg]
+
+    for i_line, s_line in enumerate(sonde_txt):
+        # 先頭行スキップ
+        if i_line <= SKIP_LINE_SONDE_TXT: continue
+        # 空行スキップ
+        if len(s_line) <= 0:
+            continue
+        # 文字数が異なる場合はエラー
+        if len(s_line) != WORDS_LINE_SONDE_TXT:
+            raise
+
+        # パース
+        idx_st = 0
+        data = []
+        for i in range(N_COLUMN_SONDE_TXT):
+            idx_en = idx_st + WORDS_COLUMN_SONDE_TXT
+            data.append(s_line[idx_st:idx_en])
+            idx_st += WORDS_COLUMN_SONDE_TXT
+
+        # リストに追加
+        if len(data[0].strip()) > 0:
+            pres_lst.append(float(data[0]))
+        if len(data[1].strip()) > 0:
+            height_lst.append(float(data[1]))
+        if len(data[2].strip()) > 0:
+            temp_lst.append(float(data[2]))
+        if len(data[3].strip()) > 0:
+            dewtemp_lst.append(float(data[3]))
+
+    pres    = np.array(pres_lst, dtype=np.float64)
+    height  = np.array(height_lst, dtype=np.float64)
+    temp    = np.array(temp_lst, dtype=np.float64)
+    dewtemp = np.array(dewtemp_lst, dtype=np.float64)
+
+    fig, ax = plt.subplots()
+    ax.plot(temp, pres[0:len(temp)])
+    ax.plot(dewtemp, pres[0:len(dewtemp)])
+    ax.invert_yaxis()
+    plt.show()
+
+
 if __name__ == '__main__':
     print("++++++++++ pyema (Emagram tools for python) ++++++++++")
     print()
 
     # 最新のラジオゾンデ観測データ取得(text形式)
     sonde_txt = get_emagram_text()
+
+    # ラジオゾンデ観測データ(text形式)をパースしてnumpy形式で保存
+    parse_emagram_text(sonde_txt)
