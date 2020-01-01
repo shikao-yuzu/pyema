@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
 import requests
 
-# ラジオゾンデ観測データ(text形式)の先頭スキップ数
+# ラジオゾンデ観測データ(Wyoming大学; text形式)の先頭スキップ数
 SKIP_LINE_SONDE_TXT    = 4
-# ラジオゾンデ観測データ(text形式)の1行の文字数
-WORDS_LINE_SONDE_TXT   = 77
-# ラジオゾンデ観測データ(text形式)の1行のカラム数
+# ラジオゾンデ観測データ(Wyoming大学; text形式)の1行のカラム数
 N_COLUMN_SONDE_TXT     = 11
-# ラジオゾンデ観測データ(text形式)の1カラムの文字数
+# ラジオゾンデ観測データ(Wyoming大学; text形式)の1カラムの文字数
 WORDS_COLUMN_SONDE_TXT = 7
+# ラジオゾンデ観測データ(tWyoming大学; ext形式)の1行の文字数
+WORDS_LINE_SONDE_TXT   = N_COLUMN_SONDE_TXT * WORDS_COLUMN_SONDE_TXT
 
 # ラジオゾンデ観測地点名 - 観測地点番号
 SONDE_STATION = {
@@ -38,7 +38,7 @@ SONDE_STATION = {
 class SondeData:
     """
     @brief:
-      ラジオゾンデ観測データの構造体(structure of ndarray)
+      ラジオゾンデ観測データの構造体(structure of ndarrays)
     """
     pass
 
