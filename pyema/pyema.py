@@ -129,8 +129,8 @@ def parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
     """
     pres_lst    = []  # 気圧 [hPa]
     height_lst  = []  # 高度 [m]
-    temp_lst    = []  # 温度 [deg]
-    dewtemp_lst = []  # 露点温度 [deg]
+    temp_lst    = []  # 温度 [C]
+    dewtemp_lst = []  # 露点温度 [C]
 
     for i_line, s_line in enumerate(sonde_txt):
         # 先頭行スキップ
@@ -175,15 +175,20 @@ def parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
 def plot_emagram(sonde_data: SondeData) -> None:
     """
     @brief:
-      ラジオゾンデ観測データ(ndarray形式)をプロットします
+      ラジオゾンデ観測データ(ndarray形式)からエマグラムを作成します
     """
     fig, ax = plt.subplots()
 
-    ax.plot(sonde_data.temp, sonde_data.pres[0:len(sonde_data.temp)])
-    ax.plot(sonde_data.dewtemp, sonde_data.pres[0:len(sonde_data.dewtemp)])
+    ax.plot(sonde_data.temp   , sonde_data.pres[0:len(sonde_data.temp)]   ,
+            color='k', linestyle='solid' , linewidth=2, label='temperature'          )
+    ax.plot(sonde_data.dewtemp, sonde_data.pres[0:len(sonde_data.dewtemp)],
+            color='k', linestyle='dashed', linewidth=2, label='dew point temperature')
 
     plt.title(sonde_data.title, fontsize=12)
+    plt.xlabel('Temperature [C]', fontsize=12)
+    plt.ylabel('Pressure [hPa]', fontsize=12)
     ax.invert_yaxis()
+    plt.legend(loc='best')
 
     plt.show()
 
@@ -192,12 +197,13 @@ if __name__ == '__main__':
     print("++++++++++ pyema (Emagram tools for python) ++++++++++")
     print()
 
-    for name in ['sapporo', 'wajima', 'tateno', 'kagoshima']:
+    #for name in ['sapporo', 'wajima', 'tateno', 'kagoshima']:
+    for name in ['tateno']:
         # 最新のラジオゾンデ観測データ取得(text形式)
         title, sonde_txt = get_emagram_text(name)
 
         # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
         sonde_data = parse_emagram_text(title, sonde_txt)
 
-        # ラジオゾンデ観測データ(ndarray形式)をプロット
+        # ラジオゾンデ観測データ(ndarray形式)からエマグラムを作成
         plot_emagram(sonde_data)
