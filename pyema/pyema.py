@@ -188,6 +188,7 @@ def plot_emagram(sonde_data: SondeData) -> None:
     plt.xlabel('Temperature [C]', fontsize=12)
     plt.ylabel('Pressure [hPa]', fontsize=12)
     ax.invert_yaxis()
+    plt.grid(color='gray', ls=':')
     plt.legend(loc='best')
 
     plt.show()
