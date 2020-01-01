@@ -14,6 +14,26 @@ N_COLUMN_SONDE_TXT     = 11
 # ラジオゾンデ観測データ(text形式)の1カラムの文字数
 WORDS_COLUMN_SONDE_TXT = 7
 
+# ラジオゾンデ観測地点名 - 観測地点番号
+SONDE_STATION = {
+    'wakkanai'       : '47401',
+    'sapporo'        : '47412',
+    'kushiro'        : '47418',
+    'akita'          : '47582',
+    'wajima'         : '47600',
+    'tateno'         : '47646',
+    'hachijyojima'   : '47678',
+    'matsue'         : '47741',
+    'shionomisaki'   : '47778',
+    'fukuoka'        : '47807',
+    'kagoshima'      : '47827',
+    'naze'           : '47909',
+    'ishigakijima'   : '47918',
+    'minamidaitojima': '47945',
+    'chichijima'     : '47971',
+    'minamitorishima': '47991'
+}
+
 
 class SondeData:
     """
@@ -64,7 +84,7 @@ def get_latest_obs_time() -> tuple:
     return year, month, time
 
 
-def get_emagram_text() -> tuple:
+def get_emagram_text(station_name: str) -> tuple:
     """
     @brief:
       最新時刻のラジオゾンデ観測データを取得します(text形式)
@@ -72,13 +92,10 @@ def get_emagram_text() -> tuple:
     # 最新データの観測時刻(UTC)
     year, month, time = get_latest_obs_time()
 
-    # 観測地点番号
-    station = '47646'  # 館野
-
     # エマグラムのtextデータ(ワイオミング大学)
     url_emagram = 'http://weather.uwyo.edu/cgi-bin/sounding?region=seasia&TYPE=TEXT%3ALIST&YEAR=' \
                   + year + '&MONTH=' + month + '&FROM=' + time + '&TO=' + time \
-                  + '&STNM=' + station
+                  + '&STNM=' + SONDE_STATION[station_name]
 
     # エコー
     print('[URL          ] ' + url_emagram)
@@ -175,11 +192,12 @@ if __name__ == '__main__':
     print("++++++++++ pyema (Emagram tools for python) ++++++++++")
     print()
 
-    # 最新のラジオゾンデ観測データ取得(text形式)
-    title, sonde_txt = get_emagram_text()
+    for name in ['sapporo', 'wajima', 'tateno', 'kagoshima']:
+        # 最新のラジオゾンデ観測データ取得(text形式)
+        title, sonde_txt = get_emagram_text(name)
 
-    # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
-    sonde_data = parse_emagram_text(title, sonde_txt)
+        # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
+        sonde_data = parse_emagram_text(title, sonde_txt)
 
-    # ラジオゾンデ観測データ(ndarray形式)をプロット
-    plot_emagram(sonde_data)
+        # ラジオゾンデ観測データ(ndarray形式)をプロット
+        plot_emagram(sonde_data)
