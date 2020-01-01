@@ -15,6 +15,14 @@ N_COLUMN_SONDE_TXT     = 11
 WORDS_COLUMN_SONDE_TXT = 7
 
 
+class SondeData:
+    """
+    @brief:
+      ラジオゾンデ観測データの構造体(structure of ndarray)
+    """
+    pass
+
+
 def get_latest_obs_time() -> tuple:
     """
     @brief:
@@ -97,10 +105,10 @@ def get_emagram_text() -> list:
     return data.splitlines()
 
 
-def parse_emagram_text(sonde_txt: list):
+def parse_emagram_text(sonde_txt: list) -> SondeData:
     """
     @brief:
-      ラジオゾンデ観測データ(text形式)をパースしてnumpy形式で保存します
+      ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存します
     """
     pres_lst    = []  # 気圧 [hPa]
     height_lst  = []  # 高度 [m]
@@ -119,30 +127,40 @@ def parse_emagram_text(sonde_txt: list):
 
         # パース
         idx_st = 0
-        data = []
+        data_tmp = []
         for i in range(N_COLUMN_SONDE_TXT):
             idx_en = idx_st + WORDS_COLUMN_SONDE_TXT
-            data.append(s_line[idx_st:idx_en])
+            data_tmp.append(s_line[idx_st:idx_en])
             idx_st += WORDS_COLUMN_SONDE_TXT
 
         # リストに追加
-        if len(data[0].strip()) > 0:
-            pres_lst.append(float(data[0]))
-        if len(data[1].strip()) > 0:
-            height_lst.append(float(data[1]))
-        if len(data[2].strip()) > 0:
-            temp_lst.append(float(data[2]))
-        if len(data[3].strip()) > 0:
-            dewtemp_lst.append(float(data[3]))
+        if len(data_tmp[0].strip()) > 0:
+            pres_lst.append(float(data_tmp[0]))
+        if len(data_tmp[1].strip()) > 0:
+            height_lst.append(float(data_tmp[1]))
+        if len(data_tmp[2].strip()) > 0:
+            temp_lst.append(float(data_tmp[2]))
+        if len(data_tmp[3].strip()) > 0:
+            dewtemp_lst.append(float(data_tmp[3]))
 
-    pres    = np.array(pres_lst, dtype=np.float64)
-    height  = np.array(height_lst, dtype=np.float64)
-    temp    = np.array(temp_lst, dtype=np.float64)
-    dewtemp = np.array(dewtemp_lst, dtype=np.float64)
+    # python list => numpy ndarray
+    sonde_data = SondeData()
+    sonde_data.pres    = np.array(pres_lst, dtype=np.float64)
+    sonde_data.height  = np.array(height_lst, dtype=np.float64)
+    sonde_data.temp    = np.array(temp_lst, dtype=np.float64)
+    sonde_data.dewtemp = np.array(dewtemp_lst, dtype=np.float64)
 
+    return sonde_data
+
+
+def plot_emagram(sonde_data: SondeData) -> None:
+    """
+    @brief:
+      ラジオゾンデ観測データ(ndarray形式)をプロットします
+    """
     fig, ax = plt.subplots()
-    ax.plot(temp, pres[0:len(temp)])
-    ax.plot(dewtemp, pres[0:len(dewtemp)])
+    ax.plot(sonde_data.temp, sonde_data.pres[0:len(sonde_data.temp)])
+    ax.plot(sonde_data.dewtemp, sonde_data.pres[0:len(sonde_data.dewtemp)])
     ax.invert_yaxis()
     plt.show()
 
@@ -154,5 +172,8 @@ if __name__ == '__main__':
     # 最新のラジオゾンデ観測データ取得(text形式)
     sonde_txt = get_emagram_text()
 
-    # ラジオゾンデ観測データ(text形式)をパースしてnumpy形式で保存
-    parse_emagram_text(sonde_txt)
+    # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
+    sonde_data = parse_emagram_text(sonde_txt)
+
+    # ラジオゾンデ観測データ(ndarray形式)をプロット
+    plot_emagram(sonde_data)
