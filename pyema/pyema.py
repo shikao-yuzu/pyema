@@ -64,7 +64,7 @@ def get_latest_obs_time() -> tuple:
     return year, month, time
 
 
-def get_emagram_text() -> list:
+def get_emagram_text() -> tuple:
     """
     @brief:
       最新時刻のラジオゾンデ観測データを取得します(text形式)
@@ -102,10 +102,10 @@ def get_emagram_text() -> list:
     print('[Title        ] ' + title)
     print(data)
 
-    return data.splitlines()
+    return title, data.splitlines()
 
 
-def parse_emagram_text(sonde_txt: list) -> SondeData:
+def parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
     """
     @brief:
       ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存します
@@ -117,7 +117,8 @@ def parse_emagram_text(sonde_txt: list) -> SondeData:
 
     for i_line, s_line in enumerate(sonde_txt):
         # 先頭行スキップ
-        if i_line <= SKIP_LINE_SONDE_TXT: continue
+        if i_line <= SKIP_LINE_SONDE_TXT:
+            continue
         # 空行スキップ
         if len(s_line) <= 0:
             continue
@@ -145,6 +146,7 @@ def parse_emagram_text(sonde_txt: list) -> SondeData:
 
     # python list => numpy ndarray
     sonde_data = SondeData()
+    sonde_data.title   = title.strip()
     sonde_data.pres    = np.array(pres_lst, dtype=np.float64)
     sonde_data.height  = np.array(height_lst, dtype=np.float64)
     sonde_data.temp    = np.array(temp_lst, dtype=np.float64)
@@ -159,9 +161,13 @@ def plot_emagram(sonde_data: SondeData) -> None:
       ラジオゾンデ観測データ(ndarray形式)をプロットします
     """
     fig, ax = plt.subplots()
+
     ax.plot(sonde_data.temp, sonde_data.pres[0:len(sonde_data.temp)])
     ax.plot(sonde_data.dewtemp, sonde_data.pres[0:len(sonde_data.dewtemp)])
+
+    plt.title(sonde_data.title, fontsize=12)
     ax.invert_yaxis()
+
     plt.show()
 
 
@@ -170,10 +176,10 @@ if __name__ == '__main__':
     print()
 
     # 最新のラジオゾンデ観測データ取得(text形式)
-    sonde_txt = get_emagram_text()
+    title, sonde_txt = get_emagram_text()
 
     # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
-    sonde_data = parse_emagram_text(sonde_txt)
+    sonde_data = parse_emagram_text(title, sonde_txt)
 
     # ラジオゾンデ観測データ(ndarray形式)をプロット
     plot_emagram(sonde_data)
