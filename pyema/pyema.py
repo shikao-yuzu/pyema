@@ -198,8 +198,8 @@ if __name__ == '__main__':
     print("++++++++++ pyema (Emagram tools for python) ++++++++++")
     print()
 
-    #for name in ['sapporo', 'wajima', 'tateno', 'kagoshima']:
-    for name in ['tateno']:
+    for name in ['sapporo', 'wajima', 'tateno', 'kagoshima']:
+    #for name in ['tateno']:
         # 最新のラジオゾンデ観測データ取得(text形式)
         title, sonde_txt = get_emagram_text(name)
 
