@@ -43,7 +43,7 @@ class SondeData:
     pass
 
 
-def get_latest_obs_time() -> tuple:
+def __get_latest_obs_time() -> tuple:
     """
     @brief:
       最新データの観測時刻(UTC)を取得します
@@ -84,13 +84,17 @@ def get_latest_obs_time() -> tuple:
     return year, month, time
 
 
-def get_emagram_text(station_name: str) -> tuple:
+def __get_emagram_text(station_name: str, obs_time: str) -> tuple:
     """
     @brief:
-      最新時刻のラジオゾンデ観測データを取得します(text形式)
+      ラジオゾンデ観測データを取得します(text形式)
     """
-    # 最新データの観測時刻(UTC)
-    year, month, time = get_latest_obs_time()
+    # 観測時刻(UTC)
+    if obs_time == 'latest':
+        # 最新観測時刻
+        year, month, time = __get_latest_obs_time()
+    else:
+        raise
 
     # エマグラムのtextデータ(ワイオミング大学)
     url_emagram = 'http://weather.uwyo.edu/cgi-bin/sounding?region=seasia&TYPE=TEXT%3ALIST&YEAR=' \
@@ -122,7 +126,7 @@ def get_emagram_text(station_name: str) -> tuple:
     return title, data.splitlines()
 
 
-def parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
+def __parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
     """
     @brief:
       ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存します
@@ -162,6 +166,7 @@ def parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
             dewtemp_lst.append(float(data_tmp[3]))
 
     # python list => numpy ndarray
+    # TODO: use pandas
     sonde_data = SondeData()
     sonde_data.title   = title.strip()
     sonde_data.pres    = np.array(pres_lst, dtype=np.float64)
@@ -172,10 +177,10 @@ def parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
     return sonde_data
 
 
-def plot_emagram(sonde_data: SondeData) -> None:
+def __plot_emagram(sonde_data: SondeData) -> None:
     """
     @brief:
-      ラジオゾンデ観測データ(ndarray形式)からエマグラムを作成します
+      ラジオゾンデ観測データ(ndarray形式)からエマグラムを図化します
     """
     fig, ax = plt.subplots()
 
@@ -194,17 +199,23 @@ def plot_emagram(sonde_data: SondeData) -> None:
     plt.show()
 
 
+def run_pyema(station_name: str, obs_time: str):
+    """
+    @brief:
+      main関数
+    """
+    # ラジオゾンデ観測データ取得(text形式)
+    title, sonde_txt = __get_emagram_text(station_name, obs_time)
+
+    # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
+    sonde_data = __parse_emagram_text(title, sonde_txt)
+
+    # ラジオゾンデ観測データ(ndarray形式)からエマグラムを図化
+    __plot_emagram(sonde_data)
+
+
 if __name__ == '__main__':
     print("++++++++++ pyema (Emagram tools for python) ++++++++++")
     print()
 
-    for name in ['sapporo', 'wajima', 'tateno', 'kagoshima']:
-    #for name in ['tateno']:
-        # 最新のラジオゾンデ観測データ取得(text形式)
-        title, sonde_txt = get_emagram_text(name)
-
-        # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
-        sonde_data = parse_emagram_text(title, sonde_txt)
-
-        # ラジオゾンデ観測データ(ndarray形式)からエマグラムを作成
-        plot_emagram(sonde_data)
+    run_pyema('tateno', 'latest')
