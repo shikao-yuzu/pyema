@@ -42,20 +42,11 @@ def __get_latest_obs_time() -> tuple:
         # 12Z
         utc_obs = utc_now.replace(hour=12, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
 
-    # 観測年
-    year = utc_obs.strftime("%Y")
-
-    # 観測月
-    month = utc_obs.strftime("%m").lstrip("0")
-
-    # 観測日
-    day = utc_obs.strftime("%d").lstrip("0")
-
-    # 観測時
-    hour = utc_obs.strftime("%H")
-
-    # 観測日時
-    time = day + hour
+    year  = utc_obs.strftime("%Y")              # 観測年
+    month = utc_obs.strftime("%m").lstrip("0")  # 観測月
+    day   = utc_obs.strftime("%d").lstrip("0")  # 観測日
+    hour  = utc_obs.strftime("%H")              # 観測時
+    time  = day + hour                          # 観測日時
 
     # エコー
     print('[UTC-Time(now)] ' + str(utc_now))
@@ -184,18 +175,22 @@ def run_pyema(station: str, obs_time: str):
     @brief:
       main関数
     """
-    # ラジオゾンデ観測データ取得(text形式)
-    title, sonde_txt = __get_emagram_text(station, obs_time)
+    try:
+        # ラジオゾンデ観測データ取得(text形式)
+        title, sonde_txt = __get_emagram_text(station, obs_time)
 
-    # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
-    sonde_data = __parse_emagram_text(title, sonde_txt)
+        # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
+        sonde_data = __parse_emagram_text(title, sonde_txt)
 
-    # ラジオゾンデ観測データ(ndarray形式)からエマグラムを図化
-    __plot_emagram(sonde_data)
+        # ラジオゾンデ観測データ(ndarray形式)からエマグラムを図化
+        __plot_emagram(sonde_data)
+
+    except Exception as e:
+        raise e
 
 
 if __name__ == '__main__':
     print("++++++++++ pyema (Emagram tools for python) ++++++++++")
     print()
 
-    run_pyema('tateno', 'latest')
+    run_pyema('47646', 'latest')
