@@ -14,26 +14,6 @@ WORDS_COLUMN_SONDE_TXT = 7
 # ラジオゾンデ観測データ(tWyoming大学; ext形式)の1行の文字数
 WORDS_LINE_SONDE_TXT   = N_COLUMN_SONDE_TXT * WORDS_COLUMN_SONDE_TXT
 
-# ラジオゾンデ観測地点名 - 観測地点番号
-SONDE_STATION = {
-    'wakkanai'       : '47401',
-    'sapporo'        : '47412',
-    'kushiro'        : '47418',
-    'akita'          : '47582',
-    'wajima'         : '47600',
-    'tateno'         : '47646',
-    'hachijyojima'   : '47678',
-    'matsue'         : '47741',
-    'shionomisaki'   : '47778',
-    'fukuoka'        : '47807',
-    'kagoshima'      : '47827',
-    'naze'           : '47909',
-    'ishigakijima'   : '47918',
-    'minamidaitojima': '47945',
-    'chichijima'     : '47971',
-    'minamitorishima': '47991'
-}
-
 
 class SondeData:
     """
@@ -84,7 +64,7 @@ def __get_latest_obs_time() -> tuple:
     return year, month, time
 
 
-def __get_emagram_text(station_name: str, obs_time: str) -> tuple:
+def __get_emagram_text(station: str, obs_time: str) -> tuple:
     """
     @brief:
       ラジオゾンデ観測データを取得します(text形式)
@@ -99,7 +79,7 @@ def __get_emagram_text(station_name: str, obs_time: str) -> tuple:
     # エマグラムのtextデータ(ワイオミング大学)
     url_emagram = 'http://weather.uwyo.edu/cgi-bin/sounding?region=seasia&TYPE=TEXT%3ALIST&YEAR=' \
                   + year + '&MONTH=' + month + '&FROM=' + time + '&TO=' + time \
-                  + '&STNM=' + SONDE_STATION[station_name]
+                  + '&STNM=' + station
 
     # エコー
     print('[URL          ] ' + url_emagram)
@@ -199,13 +179,13 @@ def __plot_emagram(sonde_data: SondeData) -> None:
     plt.show()
 
 
-def run_pyema(station_name: str, obs_time: str):
+def run_pyema(station: str, obs_time: str):
     """
     @brief:
       main関数
     """
     # ラジオゾンデ観測データ取得(text形式)
-    title, sonde_txt = __get_emagram_text(station_name, obs_time)
+    title, sonde_txt = __get_emagram_text(station, obs_time)
 
     # ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存
     sonde_data = __parse_emagram_text(title, sonde_txt)
