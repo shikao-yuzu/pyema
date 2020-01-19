@@ -122,7 +122,7 @@ class PyemaGUI(QWidget):
     @pyqtSlot()
     def __on_click_plot(self):
         try:
-            if self.combo_station.currentText() == '地点番号で指定':
+            if self.combo_station.currentText() == '...地点番号で指定':
                 station = self.text_station.text()
             else:
                 station = self.SONDE_STATION[self.combo_station.currentText()]
