@@ -11,7 +11,7 @@ rem activate virtual env
 call %VENV_SCRIPTS%activate.bat
 
 rem run
-%VENV_SCRIPTS%python pyema\pyema.py
+%VENV_SCRIPTS%python pyema\pyema_gui.py
 
 pause
 
