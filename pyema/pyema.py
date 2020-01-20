@@ -32,7 +32,7 @@ def __get_latest_obs_time() -> tuple:
     utc_now = datetime.now(timezone('UTC'))
 
     # 最新データの観測時刻を算定 (現在時刻を最新の00Zまたは12Zに変換)
-    if 3 <= utc_now.hour < 15:
+    if    3 <= utc_now.hour <  15:
         # 00Z
         utc_obs = utc_now.replace(hour=0, minute=0, second=0, microsecond=0)
     elif 15 <= utc_now.hour <= 24:
@@ -165,7 +165,7 @@ def __plot_emagram(sonde_data: SondeData, param: dict) -> None:
     @brief:
       ラジオゾンデ観測データ(ndarray形式)からエマグラムを図化します
     """
-    if param['value_h'] == 't':
+    if   param['value_h'] == 't':
         __plot_emagram_temperature(sonde_data, param)
     elif param['value_h'] == 'pt':
         __plot_emagram_theta(sonde_data, param)
@@ -180,7 +180,7 @@ def __plot_emagram_temperature(sonde_data: SondeData, param: dict) -> None:
     """
     fig, ax = plt.subplots()
 
-    if param['value_v'] == 'p':
+    if   param['value_v'] == 'p':
         ax.plot(sonde_data.temp   , sonde_data.pres[0:len(sonde_data.temp)]   ,
                 color='k', linestyle='solid' , linewidth=2, label='temperature'          )
         ax.plot(sonde_data.dewtemp, sonde_data.pres[0:len(sonde_data.dewtemp)],
@@ -211,7 +211,7 @@ def __plot_emagram_theta(sonde_data: SondeData, param: dict) -> None:
     """
     fig, ax = plt.subplots()
 
-    if param['value_v'] == 'p':
+    if   param['value_v'] == 'p':
         ax.plot(sonde_data.theta , sonde_data.pres[0:len(sonde_data.temp)]   ,
                 color='k', linestyle='solid' , linewidth=2, label='potential temperature'           )
         ax.plot(sonde_data.etheta, sonde_data.pres[0:len(sonde_data.dewtemp)],
