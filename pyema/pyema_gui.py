@@ -127,7 +127,14 @@ class PyemaGUI(QWidget):
             else:
                 station = self.SONDE_STATION[self.combo_station.currentText()]
 
-            pyema.run_pyema(station, self.obs_time)
+            param = {
+                'station' : station,
+                'obs_time': self.obs_time,
+                'value_h' : 't',
+                'value_v' : 'p'
+            }
+
+            pyema.run_pyema(param)
 
         except Exception as e:
             import traceback
