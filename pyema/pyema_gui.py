@@ -11,10 +11,6 @@ class MainWindow(QMainWindow):
 
         # window
         self.title = 'pyema'
-        #self.left   = 100
-        #self.top    = 100
-        #self.width  = 240
-        #self.height = 240
 
         self.__init_ui()
 
@@ -38,7 +34,6 @@ class MainWindow(QMainWindow):
 
         # ウインドウ
         self.setWindowTitle(self.title)
-        #self.setGeometry(self.left, self.top, self.width, self.height)
 
 
 class PyemaGUI(QWidget):
@@ -99,8 +94,20 @@ class PyemaGUI(QWidget):
         # 観測地点番号
         self.text_station = QLineEdit(self)
 
+        # 横設定
+        self.combo_axis_h = QComboBox(self)
+        self.combo_axis_h.addItem('気温[C]')
+        self.combo_axis_h.addItem('温位[K]')
+        self.combo_axis_h.resize(self.combo_station.sizeHint())
+
+        # 縦設定
+        self.combo_axis_v = QComboBox(self)
+        self.combo_axis_v.addItem('気圧[hPa]')
+        self.combo_axis_v.addItem('高度[m]')
+        self.combo_axis_v.resize(self.combo_station.sizeHint())
+
         # プロット図表示
-        button_plot = QPushButton('plot', self)
+        button_plot = QPushButton('plot (matplotlib)', self)
         button_plot.clicked.connect(self.__on_click_plot)
 
         # ウィジェット設定
@@ -114,8 +121,14 @@ class PyemaGUI(QWidget):
         grid.addWidget(QLabel('観測時刻')      , 3, 0)
         grid.addWidget(QLabel('最新')          , 3, 1)
 
-        grid.addWidget(QLabel('プロット図表示'), 4, 0)
-        grid.addWidget(button_plot             , 4, 1)
+        grid.addWidget(QLabel('横軸設定')      , 4, 0)
+        grid.addWidget(self.combo_axis_h       , 4, 1)
+
+        grid.addWidget(QLabel('縦軸設定')      , 5, 0)
+        grid.addWidget(self.combo_axis_v       , 5, 1)
+
+        grid.addWidget(QLabel('プロット図表示'), 6, 0)
+        grid.addWidget(button_plot             , 6, 1, 1, 2)
 
         self.setLayout(grid)
 
@@ -127,11 +140,25 @@ class PyemaGUI(QWidget):
             else:
                 station = self.SONDE_STATION[self.combo_station.currentText()]
 
+            if   self.combo_axis_h.currentText() == '気温[C]':
+                value_h = 't'
+            elif self.combo_axis_h.currentText() == '温位[K]':
+                value_h = 'pt'
+            else:
+                raise
+
+            if   self.combo_axis_v.currentText() == '気圧[hPa]':
+                value_v = 'p'
+            elif self.combo_axis_v.currentText() == '高度[m]':
+                value_v = 'z'
+            else:
+                raise
+
             param = {
                 'station' : station,
                 'obs_time': self.obs_time,
-                'value_h' : 't',
-                'value_v' : 'p'
+                'value_h' : value_h,
+                'value_v' : value_v
             }
 
             pyema.run_pyema(param)
@@ -143,7 +170,7 @@ class PyemaGUI(QWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app    = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
