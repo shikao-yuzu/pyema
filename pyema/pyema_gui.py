@@ -121,10 +121,10 @@ class PyemaGUI(QWidget):
         grid.addWidget(QLabel('観測時刻')      , 3, 0)
         grid.addWidget(QLabel('最新')          , 3, 1)
 
-        grid.addWidget(QLabel('横軸設定')      , 4, 0)
+        grid.addWidget(QLabel('横軸')          , 4, 0)
         grid.addWidget(self.combo_axis_h       , 4, 1)
 
-        grid.addWidget(QLabel('縦軸設定')      , 5, 0)
+        grid.addWidget(QLabel('縦軸')          , 5, 0)
         grid.addWidget(self.combo_axis_v       , 5, 1)
 
         grid.addWidget(QLabel('プロット図表示'), 6, 0)
