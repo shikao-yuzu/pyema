@@ -1,5 +1,5 @@
 from pytz import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
@@ -40,7 +40,7 @@ def __get_latest_obs_time() -> tuple:
         utc_obs = utc_now.replace(hour=12, minute=0, second=0, microsecond=0)
     else:  # 0 <= utc_now.hour < 3
         # 12Z
-        utc_obs = utc_now.replace(hour=12, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
+        utc_obs = utc_now.replace(hour=12, minute=0, second=0, microsecond=0) - timedelta(days=1)
 
     year  = utc_obs.strftime("%Y")              # 観測年
     month = utc_obs.strftime("%m").lstrip("0")  # 観測月
