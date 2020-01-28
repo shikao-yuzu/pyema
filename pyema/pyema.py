@@ -1,6 +1,7 @@
 from pytz import timezone
 from datetime import datetime, timedelta
 import numpy as np
+import japanize_matplotlib
 import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
 import requests
@@ -182,22 +183,22 @@ def __plot_emagram_temperature(sonde_data: SondeData, param: dict) -> None:
 
     if   param['value_v'] == 'p':
         ax.plot(sonde_data.temp   , sonde_data.pres[0:len(sonde_data.temp)]   ,
-                color='k', linestyle='solid' , linewidth=2, label='temperature'          )
+                color='k', linestyle='solid' , linewidth=2, label='気温'    )
         ax.plot(sonde_data.dewtemp, sonde_data.pres[0:len(sonde_data.dewtemp)],
-                color='k', linestyle='dashed', linewidth=2, label='dew point temperature')
-        plt.ylabel('Pressure [hPa]', fontsize=12)
+                color='k', linestyle='dashed', linewidth=2, label='露点温度')
+        plt.ylabel('気圧 [hPa]', fontsize=12)
         ax.invert_yaxis()
     elif param['value_v'] == 'z':
         ax.plot(sonde_data.temp   , sonde_data.height[0:len(sonde_data.temp)]   ,
-                color='k', linestyle='solid' , linewidth=2, label='temperature'          )
+                color='k', linestyle='solid' , linewidth=2, label='気温'    )
         ax.plot(sonde_data.dewtemp, sonde_data.height[0:len(sonde_data.dewtemp)],
-                color='k', linestyle='dashed', linewidth=2, label='dew point temperature')
-        plt.ylabel('Height [m]', fontsize=12)
+                color='k', linestyle='dashed', linewidth=2, label='露点温度')
+        plt.ylabel('高度 [m]', fontsize=12)
     else:
         raise
 
     plt.title(sonde_data.title  , fontsize=12)
-    plt.xlabel('Temperature [C]', fontsize=12)
+    plt.xlabel('気温 [C]', fontsize=12)
 
     plt.grid(color='gray', ls=':')
     plt.legend(loc='best')
@@ -213,22 +214,22 @@ def __plot_emagram_theta(sonde_data: SondeData, param: dict) -> None:
 
     if   param['value_v'] == 'p':
         ax.plot(sonde_data.theta , sonde_data.pres[0:len(sonde_data.temp)]   ,
-                color='k', linestyle='solid' , linewidth=2, label='potential temperature'           )
+                color='k', linestyle='solid' , linewidth=2, label='温位'    )
         ax.plot(sonde_data.etheta, sonde_data.pres[0:len(sonde_data.dewtemp)],
-                color='k', linestyle='dashed', linewidth=2, label='equivalent potential temperature')
-        plt.ylabel('Pressure [hPa]', fontsize=12)
+                color='k', linestyle='dashed', linewidth=2, label='相当温位')
+        plt.ylabel('気圧 [hPa]', fontsize=12)
         ax.invert_yaxis()
     elif param['value_v'] == 'z':
         ax.plot(sonde_data.theta , sonde_data.height[0:len(sonde_data.temp)]   ,
-                color='k', linestyle='solid' , linewidth=2, label='potential temperature'           )
+                color='k', linestyle='solid' , linewidth=2, label='温位'    )
         ax.plot(sonde_data.etheta, sonde_data.height[0:len(sonde_data.dewtemp)],
-                color='k', linestyle='dashed', linewidth=2, label='equivalent potential temperature')
-        plt.ylabel('Height [m]', fontsize=12)
+                color='k', linestyle='dashed', linewidth=2, label='相当温位')
+        plt.ylabel('高度 [m]', fontsize=12)
     else:
         raise
 
-    plt.title(sonde_data.title            , fontsize=12)
-    plt.xlabel('Potential Temperature [K]', fontsize=12)
+    plt.title(sonde_data.title, fontsize=12)
+    plt.xlabel('温位 [K]', fontsize=12)
 
     plt.grid(color='gray', ls=':')
     plt.legend(loc='best')
