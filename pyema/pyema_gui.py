@@ -93,8 +93,8 @@ class PyemaGUI(QWidget):
         # 観測地点番号
         self.text_station = QLineEdit(self)
 
-        # 観測時刻：設定
-        self.button_obs_time_now = QPushButton('現在時刻を設定', self)
+        # 観測時刻：最新観測時刻取得
+        self.button_obs_time_now = QPushButton('最新観測時刻を取得', self)
         self.button_obs_time_now.clicked.connect(self.__on_click_obs_time_now)
 
         # 観測時刻: 年
