@@ -1,5 +1,3 @@
-from pytz import timezone
-from datetime import datetime, timedelta
 import numpy as np
 import japanize_matplotlib
 import matplotlib.pyplot as plt
@@ -24,57 +22,18 @@ class SondeData:
     pass
 
 
-def __get_latest_obs_time() -> tuple:
-    """
-    @brief:
-      最新データの観測時刻(UTC)を取得します
-    """
-    # 現在時刻をUTCで取得
-    utc_now = datetime.now(timezone('UTC'))
-
-    # 最新データの観測時刻を算定 (現在時刻を最新の00Zまたは12Zに変換)
-    if    3 <= utc_now.hour <  15:
-        # 00Z
-        utc_obs = utc_now.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif 15 <= utc_now.hour <= 24:
-        # 12Z
-        utc_obs = utc_now.replace(hour=12, minute=0, second=0, microsecond=0)
-    else:  # 0 <= utc_now.hour < 3
-        # 12Z
-        utc_obs = utc_now.replace(hour=12, minute=0, second=0, microsecond=0) - timedelta(days=1)
-
-    year  = utc_obs.strftime("%Y")              # 観測年
-    month = utc_obs.strftime("%m").lstrip("0")  # 観測月
-    day   = utc_obs.strftime("%d").lstrip("0")  # 観測日
-    hour  = utc_obs.strftime("%H")              # 観測時
-    time  = day + hour                          # 観測日時
-
-    # エコー
-    print('[UTC-Time(now)] ' + str(utc_now))
-    print('[UTC-Time(obs)] ' + str(utc_obs))
-
-    return year, month, time
-
-
 def __get_emagram_text(station: str, obs_time: str) -> tuple:
     """
     @brief:
       ラジオゾンデ観測データを取得します(text形式)
     """
-    # 観測時刻(UTC)
-    if obs_time == 'latest':
-        # 最新観測時刻
-        year, month, time = __get_latest_obs_time()
-    else:
-        raise
-
     # エマグラムのtextデータ(ワイオミング大学)
     url_emagram = 'http://weather.uwyo.edu/cgi-bin/sounding?region=seasia&TYPE=TEXT%3ALIST&YEAR=' \
-                  + year + '&MONTH=' + month + '&FROM=' + time + '&TO=' + time \
-                  + '&STNM=' + station
+                  + obs_time['year'] + '&MONTH=' + obs_time['month'] + '&FROM=' + obs_time['time'] \
+                  + '&TO=' + obs_time['time'] + '&STNM=' + station
 
     # エコー
-    print('[URL          ] ' + url_emagram)
+    print('[URL        ] ' + url_emagram)
 
     # Webサイトにgetリクエストで送信し情報を取得
     r = requests.get(url_emagram)
@@ -92,7 +51,7 @@ def __get_emagram_text(station: str, obs_time: str) -> tuple:
     data = soup.find(name='pre').get_text()
 
     # エコー
-    print('[Title        ] ' + title)
+    print('[Title      ] ' + title)
     print(data)
 
     return title, data.splitlines()
@@ -261,8 +220,12 @@ if __name__ == '__main__':
 
     param = {
         'station' : '47646',
-        'obs_time': 'latest',
-        'value_h' : 'pt',
+        'obs_time': {
+            'year' : '2020',
+            'month': '2'   ,
+            'time' : '100'
+        },
+        'value_h' : 't',
         'value_v' : 'p'
     }
 
