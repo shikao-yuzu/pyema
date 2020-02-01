@@ -2,7 +2,7 @@ from pytz import timezone
 from datetime import datetime, timedelta
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QMessageBox, \
-                            QLabel, QLineEdit, QPushButton, QAction, QComboBox
+                            QLabel, QLineEdit, QPushButton, QAction, QComboBox, QFrame
 from PyQt5.QtCore import pyqtSlot
 import pyema
 
@@ -69,6 +69,22 @@ class PyemaGUI(QWidget):
         self.__set_grid()
 
     def __set_widget(self) -> None:
+        # 観測地点
+        self.__set_widget_station()
+
+        # 観測時刻
+        self.__set_widget_obs_time()
+
+        # 横軸
+        self.__set_widget_axis_h()
+
+        # 縦軸
+        self.__set_widget_axis_v()
+
+        # 結果表示
+        self.__set_widget_output()
+
+    def __set_widget_station(self) -> None:
         # 観測地点名
         self.combo_station = QComboBox(self)
         self.combo_station.addItem('稚内(47401)'       )
@@ -93,7 +109,8 @@ class PyemaGUI(QWidget):
         # 観測地点番号
         self.text_station = QLineEdit(self)
 
-        # 観測時刻：最新観測時刻取得
+    def __set_widget_obs_time(self) -> None:
+        # 観測時刻：最新観測時刻
         self.button_obs_time_now = QPushButton('最新観測時刻を取得', self)
         self.button_obs_time_now.clicked.connect(self.__on_click_obs_time_now)
 
@@ -112,18 +129,45 @@ class PyemaGUI(QWidget):
         self.combo_obs_time_h.addItem('12Z')
         self.combo_obs_time_h.resize(self.combo_obs_time_h.sizeHint())
 
-        # 横軸設定
-        self.combo_axis_h = QComboBox(self)
-        self.combo_axis_h.addItem('気温[C]')
-        self.combo_axis_h.addItem('温位[K]')
-        self.combo_axis_h.resize(self.combo_station.sizeHint())
+    def __set_widget_axis_h(self) -> None:
+        # 横軸: 種別
+        self.combo_axis_h_type = QComboBox(self)
+        self.combo_axis_h_type.addItem('気温[C]')
+        self.combo_axis_h_type.addItem('温位[K]')
+        self.combo_axis_h_type.resize(self.combo_axis_h_type.sizeHint())
 
-        # 縦軸設定
-        self.combo_axis_v = QComboBox(self)
-        self.combo_axis_v.addItem('気圧[hPa]')
-        self.combo_axis_v.addItem('高度[m]')
-        self.combo_axis_v.resize(self.combo_station.sizeHint())
+        # 横軸: 境界値設定
+        self.combo_axis_h_auto = QComboBox(self)
+        self.combo_axis_h_auto.addItem('自動')
+        self.combo_axis_h_auto.addItem('...ユーザー指定')
+        self.combo_axis_h_auto.resize(self.combo_axis_h_auto.sizeHint())
 
+        # 横軸: 左端
+        self.text_axis_h1 = QLineEdit(self)
+
+        # 横軸: 右端
+        self.text_axis_h2 = QLineEdit(self)
+
+    def __set_widget_axis_v(self) -> None:
+        # 縦軸: 種別
+        self.combo_axis_v_type = QComboBox(self)
+        self.combo_axis_v_type.addItem('気圧[hPa]')
+        self.combo_axis_v_type.addItem('高度[m]')
+        self.combo_axis_v_type.resize(self.combo_axis_v_type.sizeHint())
+
+        # 縦軸: 境界値設定
+        self.combo_axis_v_auto = QComboBox(self)
+        self.combo_axis_v_auto.addItem('自動')
+        self.combo_axis_v_auto.addItem('...ユーザー指定')
+        self.combo_axis_v_auto.resize(self.combo_axis_v_auto.sizeHint())
+
+        # 縦軸: 下端
+        self.text_axis_v1 = QLineEdit(self)
+
+        # 縦軸: 上端
+        self.text_axis_v2 = QLineEdit(self)
+
+    def __set_widget_output(self) -> None:
         # プロット図表示
         self.button_plot = QPushButton('plot (matplotlib)', self)
         self.button_plot.clicked.connect(self.__on_click_plot)
@@ -142,6 +186,10 @@ class PyemaGUI(QWidget):
         irow += 1
         grid.addWidget(QLabel('地点番号')      , irow, 1)
         grid.addWidget(self.text_station       , irow, 2)
+
+        # -----------------------------------------------------
+        irow += 1
+        grid.addWidget(QHLine()                , irow, 0, 1, 3)
 
         irow += 1
         grid.addWidget(QLabel('観測時刻(UTC)') , irow, 0)
@@ -163,13 +211,51 @@ class PyemaGUI(QWidget):
         grid.addWidget(QLabel('時(hh)')        , irow, 1)
         grid.addWidget(self.combo_obs_time_h   , irow, 2)
 
+        # -----------------------------------------------------
         irow += 1
-        grid.addWidget(QLabel('横軸')          , irow, 0)
-        grid.addWidget(self.combo_axis_h       , irow, 1)
+        grid.addWidget(QHLine()                , irow, 0, 1, 3)
 
         irow += 1
-        grid.addWidget(QLabel('縦軸')          , irow, 0)
-        grid.addWidget(self.combo_axis_v       , irow, 1)
+        grid.addWidget(QLabel('横軸設定')      , irow, 0)
+        grid.addWidget(QLabel('種別')          , irow, 1)
+        grid.addWidget(self.combo_axis_h_type  , irow, 2)
+
+        irow += 1
+        grid.addWidget(QLabel('境界値設定')    , irow, 1)
+        grid.addWidget(self.combo_axis_h_auto  , irow, 2)
+
+        irow += 1
+        grid.addWidget(QLabel('左端')          , irow, 1)
+        grid.addWidget(self.text_axis_h1       , irow, 2)
+
+        irow += 1
+        grid.addWidget(QLabel('右端')          , irow, 1)
+        grid.addWidget(self.text_axis_h2       , irow, 2)
+
+        # -----------------------------------------------------
+        irow += 1
+        grid.addWidget(QHLine()                , irow, 0, 1, 3)
+
+        irow += 1
+        grid.addWidget(QLabel('縦軸設定')      , irow, 0)
+        grid.addWidget(QLabel('種別')          , irow, 1)
+        grid.addWidget(self.combo_axis_v_type  , irow, 2)
+
+        irow += 1
+        grid.addWidget(QLabel('境界値設定')    , irow, 1)
+        grid.addWidget(self.combo_axis_v_auto  , irow, 2)
+
+        irow += 1
+        grid.addWidget(QLabel('上端')          , irow, 1)
+        grid.addWidget(self.text_axis_v2       , irow, 2)
+
+        irow += 1
+        grid.addWidget(QLabel('下端')          , irow, 1)
+        grid.addWidget(self.text_axis_v1       , irow, 2)
+
+        # -----------------------------------------------------
+        irow += 1
+        grid.addWidget(QHLine()                , irow, 0, 1, 3)
 
         irow += 1
         grid.addWidget(QLabel('プロット図表示'), irow, 0)
@@ -193,20 +279,34 @@ class PyemaGUI(QWidget):
                   + self.combo_obs_time_h.currentText().rstrip('Z')
 
             # 横軸設定
-            if   self.combo_axis_h.currentText() == '気温[C]':
-                value_h = 't'
-            elif self.combo_axis_h.currentText() == '温位[K]':
-                value_h = 'pt'
+            if   self.combo_axis_h_type.currentText() == '気温[C]':
+                axis_h_type = 't'
+            elif self.combo_axis_h_type.currentText() == '温位[K]':
+                axis_h_type = 'pt'
             else:
                 raise
 
+            if   self.combo_axis_h_auto.currentText() == '自動':
+                axis_h_limit = None
+            else:
+                h1 = float(self.text_axis_h1.text())
+                h2 = float(self.text_axis_h2.text())
+                axis_h_limit = [h1, h2]
+
             # 縦軸設定
-            if   self.combo_axis_v.currentText() == '気圧[hPa]':
-                value_v = 'p'
-            elif self.combo_axis_v.currentText() == '高度[m]':
-                value_v = 'z'
+            if   self.combo_axis_v_type.currentText() == '気圧[hPa]':
+                axis_v_type = 'p'
+            elif self.combo_axis_v_type.currentText() == '高度[m]':
+                axis_v_type = 'z'
             else:
                 raise
+
+            if   self.combo_axis_v_auto.currentText() == '自動':
+                axis_v_limit = None
+            else:
+                v1 = float(self.text_axis_v1.text())
+                v2 = float(self.text_axis_v2.text())
+                axis_v_limit = [v1, v2]
 
             # パラメータ設定
             param = {
@@ -216,8 +316,14 @@ class PyemaGUI(QWidget):
                     'month': month,
                     'time' : time
                 },
-                'value_h' : value_h,
-                'value_v' : value_v
+                'axis_h' : {
+                    'type' : axis_h_type,
+                    'limit': axis_h_limit
+                },
+                'axis_v' : {
+                    'type' : axis_v_type,
+                    'limit': axis_v_limit
+                }
             }
 
             pyema.run_pyema(param)
@@ -265,6 +371,16 @@ class PyemaGUI(QWidget):
         print('[UTC(latest)] ' + str(utc_obs))
 
         return year, month, day, hour
+
+
+class QHLine(QFrame):
+    '''
+    reference: https://stackoverflow.com/questions/5671354/how-to-programmatically-make-a-horizontal-line-in-qt
+    '''
+    def __init__(self):
+        super(QHLine, self).__init__()
+        self.setFrameShape(QFrame.HLine)
+        self.setFrameShadow(QFrame.Sunken)
 
 
 if __name__ == '__main__':

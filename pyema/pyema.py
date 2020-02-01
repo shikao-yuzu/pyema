@@ -1,3 +1,8 @@
+# TODO: use pandas
+# TODO: 表機能を追加
+# TODO: ワイオミング大のpdfをそのまま表示
+# TODO: 飽和相当温位線を追加
+# TODO: 乾燥断熱線，湿潤断熱線を追加
 import numpy as np
 import japanize_matplotlib
 import matplotlib.pyplot as plt
@@ -106,7 +111,6 @@ def __parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
             vtheta_lst.append(float(data_tmp[10]))
 
     # python list => numpy ndarray
-    # TODO: use pandas
     sonde_data = SondeData()
     sonde_data.title   = title.strip()
     sonde_data.pres    = np.array(pres_lst   , dtype=np.float64)
@@ -125,9 +129,9 @@ def __plot_emagram(sonde_data: SondeData, param: dict) -> None:
     @brief:
       ラジオゾンデ観測データ(ndarray形式)からエマグラムを図化します
     """
-    if   param['value_h'] == 't':
+    if   param['axis_h']['type'] == 't':
         __plot_emagram_temperature(sonde_data, param)
-    elif param['value_h'] == 'pt':
+    elif param['axis_h']['type'] == 'pt':
         __plot_emagram_theta(sonde_data, param)
     else:
         raise
@@ -140,14 +144,14 @@ def __plot_emagram_temperature(sonde_data: SondeData, param: dict) -> None:
     """
     fig, ax = plt.subplots()
 
-    if   param['value_v'] == 'p':
+    if   param['axis_v']['type'] == 'p':
         ax.plot(sonde_data.temp   , sonde_data.pres[0:len(sonde_data.temp)]   ,
                 color='k', linestyle='solid' , linewidth=2, label='気温'    )
         ax.plot(sonde_data.dewtemp, sonde_data.pres[0:len(sonde_data.dewtemp)],
                 color='k', linestyle='dashed', linewidth=2, label='露点温度')
         plt.ylabel('気圧 [hPa]', fontsize=12)
         ax.invert_yaxis()
-    elif param['value_v'] == 'z':
+    elif param['axis_v']['type'] == 'z':
         ax.plot(sonde_data.temp   , sonde_data.height[0:len(sonde_data.temp)]   ,
                 color='k', linestyle='solid' , linewidth=2, label='気温'    )
         ax.plot(sonde_data.dewtemp, sonde_data.height[0:len(sonde_data.dewtemp)],
@@ -158,6 +162,9 @@ def __plot_emagram_temperature(sonde_data: SondeData, param: dict) -> None:
 
     plt.title(sonde_data.title  , fontsize=12)
     plt.xlabel('気温 [C]', fontsize=12)
+
+    ax.set_xlim(param['axis_h']['limit'])
+    ax.set_ylim(param['axis_v']['limit'])
 
     plt.grid(color='gray', ls=':')
     plt.legend(loc='best')
@@ -171,14 +178,14 @@ def __plot_emagram_theta(sonde_data: SondeData, param: dict) -> None:
     """
     fig, ax = plt.subplots()
 
-    if   param['value_v'] == 'p':
+    if   param['axis_v']['type'] == 'p':
         ax.plot(sonde_data.theta , sonde_data.pres[0:len(sonde_data.temp)]   ,
                 color='k', linestyle='solid' , linewidth=2, label='温位'    )
         ax.plot(sonde_data.etheta, sonde_data.pres[0:len(sonde_data.dewtemp)],
                 color='k', linestyle='dashed', linewidth=2, label='相当温位')
         plt.ylabel('気圧 [hPa]', fontsize=12)
         ax.invert_yaxis()
-    elif param['value_v'] == 'z':
+    elif param['axis_v']['type'] == 'z':
         ax.plot(sonde_data.theta , sonde_data.height[0:len(sonde_data.temp)]   ,
                 color='k', linestyle='solid' , linewidth=2, label='温位'    )
         ax.plot(sonde_data.etheta, sonde_data.height[0:len(sonde_data.dewtemp)],
@@ -189,6 +196,9 @@ def __plot_emagram_theta(sonde_data: SondeData, param: dict) -> None:
 
     plt.title(sonde_data.title, fontsize=12)
     plt.xlabel('温位 [K]', fontsize=12)
+
+    ax.set_xlim(param['axis_h']['limit'])
+    ax.set_ylim(param['axis_v']['limit'])
 
     plt.grid(color='gray', ls=':')
     plt.legend(loc='best')
@@ -225,8 +235,14 @@ if __name__ == '__main__':
             'month': '2'   ,
             'time' : '100'
         },
-        'value_h' : 't',
-        'value_v' : 'p'
+        'axis_h': {
+            'type': 't',
+            'limit': None,
+        },
+        'axis_v': {
+            'type': 'p',
+            'limit': None
+        }
     }
 
     run_pyema(param)
