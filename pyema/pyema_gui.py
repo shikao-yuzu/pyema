@@ -108,6 +108,9 @@ class PyemaGUI(QWidget):
 
         # 観測地点番号
         self.text_station = QLineEdit(self)
+        self.text_station.setDisabled(True)
+
+        self.combo_station.activated[str].connect(self.__activated_combo_station)
 
     def __set_widget_obs_time(self) -> None:
         # 観測時刻：最新観測時刻
@@ -137,16 +140,20 @@ class PyemaGUI(QWidget):
         self.combo_axis_h_type.resize(self.combo_axis_h_type.sizeHint())
 
         # 横軸: 境界値設定
-        self.combo_axis_h_auto = QComboBox(self)
-        self.combo_axis_h_auto.addItem('自動')
-        self.combo_axis_h_auto.addItem('...ユーザー指定')
-        self.combo_axis_h_auto.resize(self.combo_axis_h_auto.sizeHint())
+        self.combo_axis_h_limit = QComboBox(self)
+        self.combo_axis_h_limit.addItem('自動')
+        self.combo_axis_h_limit.addItem('...ユーザー指定')
+        self.combo_axis_h_limit.resize(self.combo_axis_h_limit.sizeHint())
 
         # 横軸: 左端
         self.text_axis_h1 = QLineEdit(self)
+        self.text_axis_h1.setDisabled(True)
 
         # 横軸: 右端
         self.text_axis_h2 = QLineEdit(self)
+        self.text_axis_h2.setDisabled(True)
+
+        self.combo_axis_h_limit.activated[str].connect(self.__activated_combo_axis_h_limit)
 
     def __set_widget_axis_v(self) -> None:
         # 縦軸: 種別
@@ -156,16 +163,20 @@ class PyemaGUI(QWidget):
         self.combo_axis_v_type.resize(self.combo_axis_v_type.sizeHint())
 
         # 縦軸: 境界値設定
-        self.combo_axis_v_auto = QComboBox(self)
-        self.combo_axis_v_auto.addItem('自動')
-        self.combo_axis_v_auto.addItem('...ユーザー指定')
-        self.combo_axis_v_auto.resize(self.combo_axis_v_auto.sizeHint())
+        self.combo_axis_v_limit = QComboBox(self)
+        self.combo_axis_v_limit.addItem('自動')
+        self.combo_axis_v_limit.addItem('...ユーザー指定')
+        self.combo_axis_v_limit.resize(self.combo_axis_v_limit.sizeHint())
 
         # 縦軸: 下端
         self.text_axis_v1 = QLineEdit(self)
+        self.text_axis_v1.setDisabled(True)
 
         # 縦軸: 上端
         self.text_axis_v2 = QLineEdit(self)
+        self.text_axis_v2.setDisabled(True)
+
+        self.combo_axis_v_limit.activated[str].connect(self.__activated_combo_axis_v_limit)
 
     def __set_widget_output(self) -> None:
         # プロット図表示
@@ -222,7 +233,7 @@ class PyemaGUI(QWidget):
 
         irow += 1
         grid.addWidget(QLabel('境界値設定')    , irow, 1)
-        grid.addWidget(self.combo_axis_h_auto  , irow, 2)
+        grid.addWidget(self.combo_axis_h_limit , irow, 2)
 
         irow += 1
         grid.addWidget(QLabel('左端')          , irow, 1)
@@ -243,7 +254,7 @@ class PyemaGUI(QWidget):
 
         irow += 1
         grid.addWidget(QLabel('境界値設定')    , irow, 1)
-        grid.addWidget(self.combo_axis_v_auto  , irow, 2)
+        grid.addWidget(self.combo_axis_v_limit , irow, 2)
 
         irow += 1
         grid.addWidget(QLabel('上端')          , irow, 1)
@@ -262,6 +273,31 @@ class PyemaGUI(QWidget):
         grid.addWidget(self.button_plot        , irow, 1, 1, 2)
 
         self.setLayout(grid)
+
+    @pyqtSlot()
+    def __activated_combo_station(self) -> None:
+        if self.combo_station.currentText() == '...地点番号で指定':
+            self.text_station.setDisabled(False)
+        else:
+            self.text_station.setDisabled(True)
+
+    @pyqtSlot()
+    def __activated_combo_axis_h_limit(self) -> None:
+        if self.combo_axis_h_limit.currentText() == '自動':
+            self.text_axis_h1.setDisabled(True)
+            self.text_axis_h2.setDisabled(True)
+        else:
+            self.text_axis_h1.setDisabled(False)
+            self.text_axis_h2.setDisabled(False)
+
+    @pyqtSlot()
+    def __activated_combo_axis_v_limit(self) -> None:
+        if self.combo_axis_v_limit.currentText() == '自動':
+            self.text_axis_v1.setDisabled(True)
+            self.text_axis_v2.setDisabled(True)
+        else:
+            self.text_axis_v1.setDisabled(False)
+            self.text_axis_v2.setDisabled(False)
 
     @pyqtSlot()
     def __on_click_plot(self):
@@ -286,7 +322,7 @@ class PyemaGUI(QWidget):
             else:
                 raise
 
-            if   self.combo_axis_h_auto.currentText() == '自動':
+            if   self.combo_axis_h_limit.currentText() == '自動':
                 axis_h_limit = None
             else:
                 h1 = float(self.text_axis_h1.text())
@@ -301,7 +337,7 @@ class PyemaGUI(QWidget):
             else:
                 raise
 
-            if   self.combo_axis_v_auto.currentText() == '自動':
+            if   self.combo_axis_v_limit.currentText() == '自動':
                 axis_v_limit = None
             else:
                 v1 = float(self.text_axis_v1.text())
