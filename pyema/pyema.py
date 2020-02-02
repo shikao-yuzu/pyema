@@ -1,13 +1,13 @@
 # TODO: use pandas
-# TODO: 表機能を追加
+# TODO: 表機能
 # TODO: ワイオミング大のpdfをそのまま表示
-# TODO: 飽和相当温位線を追加
-# TODO: 乾燥断熱線，湿潤断熱線を追加
+# TODO: 乾燥断熱線，湿潤断熱線, LCL
 import numpy as np
 import japanize_matplotlib
 import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
 import requests
+import pyema_util
 
 # ラジオゾンデ観測データ(Wyoming大学; text形式)の先頭スキップ数
 SKIP_LINE_SONDE_TXT    = 4
@@ -72,7 +72,7 @@ def __parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
     temp_lst    = []  # 温度 [C]
     dewtemp_lst = []  # 露点温度 [C]
     theta_lst   = []  # 温位 [K]
-    etheta_lst  = []  # 相当温位 [K]
+    theta_e_lst = []  # 相当温位 [K]
     vtheta_lst  = []  # 仮温位 [K]
 
     for i_line, s_line in enumerate(sonde_txt):
@@ -106,7 +106,7 @@ def __parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
         if len(data_tmp[8].strip()) > 0:
             theta_lst.append(float(data_tmp[8]))
         if len(data_tmp[9].strip()) > 0:
-            etheta_lst.append(float(data_tmp[9]))
+            theta_e_lst.append(float(data_tmp[9]))
         if len(data_tmp[10].strip()) > 0:
             vtheta_lst.append(float(data_tmp[10]))
 
@@ -118,7 +118,7 @@ def __parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
     sonde_data.temp    = np.array(temp_lst   , dtype=np.float64)
     sonde_data.dewtemp = np.array(dewtemp_lst, dtype=np.float64)
     sonde_data.theta   = np.array(theta_lst  , dtype=np.float64)
-    sonde_data.etheta  = np.array(etheta_lst , dtype=np.float64)
+    sonde_data.theta_e = np.array(theta_e_lst, dtype=np.float64)
     sonde_data.vtheta  = np.array(vtheta_lst , dtype=np.float64)
 
     return sonde_data
@@ -130,8 +130,12 @@ def __plot_emagram(sonde_data: SondeData, param: dict) -> None:
       ラジオゾンデ観測データ(ndarray形式)からエマグラムを図化します
     """
     if   param['axis_h']['type'] == 't':
+        # 図化
         __plot_emagram_temperature(sonde_data, param)
     elif param['axis_h']['type'] == 'pt':
+        # 飽和相当温位算出
+        __calc_theta_es(sonde_data)
+        # 図化
         __plot_emagram_theta(sonde_data, param)
     else:
         raise
@@ -145,17 +149,17 @@ def __plot_emagram_temperature(sonde_data: SondeData, param: dict) -> None:
     fig, ax = plt.subplots()
 
     if   param['axis_v']['type'] == 'p':
-        ax.plot(sonde_data.temp   , sonde_data.pres[0:len(sonde_data.temp)]   ,
+        ax.plot(sonde_data.temp   , sonde_data.pres[0:len(sonde_data.temp)   ],
                 color='k', linestyle='solid' , linewidth=2, label='気温'    )
         ax.plot(sonde_data.dewtemp, sonde_data.pres[0:len(sonde_data.dewtemp)],
-                color='k', linestyle='dashed', linewidth=2, label='露点温度')
+                color='b', linestyle='dashed', linewidth=2, label='露点温度')
         plt.ylabel('気圧 [hPa]', fontsize=12)
         ax.invert_yaxis()
     elif param['axis_v']['type'] == 'z':
-        ax.plot(sonde_data.temp   , sonde_data.height[0:len(sonde_data.temp)]   ,
+        ax.plot(sonde_data.temp   , sonde_data.height[0:len(sonde_data.temp)   ],
                 color='k', linestyle='solid' , linewidth=2, label='気温'    )
         ax.plot(sonde_data.dewtemp, sonde_data.height[0:len(sonde_data.dewtemp)],
-                color='k', linestyle='dashed', linewidth=2, label='露点温度')
+                color='b', linestyle='dashed', linewidth=2, label='露点温度')
         plt.ylabel('高度 [m]', fontsize=12)
     else:
         raise
@@ -179,17 +183,21 @@ def __plot_emagram_theta(sonde_data: SondeData, param: dict) -> None:
     fig, ax = plt.subplots()
 
     if   param['axis_v']['type'] == 'p':
-        ax.plot(sonde_data.theta , sonde_data.pres[0:len(sonde_data.temp)]   ,
-                color='k', linestyle='solid' , linewidth=2, label='温位'    )
-        ax.plot(sonde_data.etheta, sonde_data.pres[0:len(sonde_data.dewtemp)],
-                color='k', linestyle='dashed', linewidth=2, label='相当温位')
+        ax.plot(sonde_data.theta   , sonde_data.pres[0:len(sonde_data.temp)    ],
+                color='k', linestyle='solid' , linewidth=2, label='温位'        )
+        ax.plot(sonde_data.theta_e , sonde_data.pres[0:len(sonde_data.theta_e) ],
+                color='b', linestyle='dashed', linewidth=2, label='相当温位'    )
+        ax.plot(sonde_data.theta_es, sonde_data.pres[0:len(sonde_data.theta_es)],
+                color='r', linestyle='dotted', linewidth=2, label='飽和相当温位')
         plt.ylabel('気圧 [hPa]', fontsize=12)
         ax.invert_yaxis()
     elif param['axis_v']['type'] == 'z':
-        ax.plot(sonde_data.theta , sonde_data.height[0:len(sonde_data.temp)]   ,
-                color='k', linestyle='solid' , linewidth=2, label='温位'    )
-        ax.plot(sonde_data.etheta, sonde_data.height[0:len(sonde_data.dewtemp)],
-                color='k', linestyle='dashed', linewidth=2, label='相当温位')
+        ax.plot(sonde_data.theta   , sonde_data.height[0:len(sonde_data.temp)    ],
+                color='k', linestyle='solid' , linewidth=2, label='温位'        )
+        ax.plot(sonde_data.theta_e , sonde_data.height[0:len(sonde_data.theta_e) ],
+                color='b', linestyle='dashed', linewidth=2, label='相当温位'    )
+        ax.plot(sonde_data.theta_es, sonde_data.height[0:len(sonde_data.theta_es)],
+                color='r', linestyle='dotted', linewidth=2, label='飽和相当温位')
         plt.ylabel('高度 [m]', fontsize=12)
     else:
         raise
@@ -203,6 +211,21 @@ def __plot_emagram_theta(sonde_data: SondeData, param: dict) -> None:
     plt.grid(color='gray', ls=':')
     plt.legend(loc='best')
     plt.show()
+
+
+def __calc_theta_es(sonde_data: SondeData):
+    """
+    @brief:
+      飽和相当温位θe*(t,p)[K]を求めます
+    """
+    # 絶対温度 [K]
+    t = sonde_data.temp[0:len(sonde_data.theta_e)] + 273.15
+
+    # 気圧 [hPa]
+    p = sonde_data.pres[0:len(sonde_data.theta_e)]
+
+    # 飽和相当温位 [K]
+    sonde_data.theta_es = pyema_util.calc_theta_es(t, p)
 
 
 def run_pyema(param: dict):
@@ -236,7 +259,7 @@ if __name__ == '__main__':
             'time' : '100'
         },
         'axis_h': {
-            'type': 't',
+            'type': 'pt',
             'limit': None,
         },
         'axis_v': {
