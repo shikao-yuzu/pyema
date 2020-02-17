@@ -68,9 +68,10 @@ def __parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
       ラジオゾンデ観測データ(text形式)をパースしてndarray形式で保存します
     """
     pres_lst    = []  # 気圧 [hPa]
-    height_lst  = []  # 高度 [m]
+    height_lst  = []  # ジオポテンシャル高度 [m]
     temp_lst    = []  # 温度 [C]
     dewtemp_lst = []  # 露点温度 [C]
+    mixr_lst    = []  # 混合比 [g/kg]
     theta_lst   = []  # 温位 [K]
     theta_e_lst = []  # 相当温位 [K]
     vtheta_lst  = []  # 仮温位 [K]
@@ -88,27 +89,33 @@ def __parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
 
         # パース
         idx_st = 0
-        data_tmp = []
+        work = []
         for i in range(N_COLUMN_SONDE_TXT):
             idx_en = idx_st + WORDS_COLUMN_SONDE_TXT
-            data_tmp.append(s_line[idx_st:idx_en])
+            work.append(s_line[idx_st:idx_en])
             idx_st += WORDS_COLUMN_SONDE_TXT
 
+        # 気温が記録されていない高度はスキップ
+        if len(work[2].strip()) <= 0:
+            continue
+
         # リストに追加
-        if len(data_tmp[0].strip()) > 0:
-            pres_lst.append(float(data_tmp[0]))
-        if len(data_tmp[1].strip()) > 0:
-            height_lst.append(float(data_tmp[1]))
-        if len(data_tmp[2].strip()) > 0:
-            temp_lst.append(float(data_tmp[2]))
-        if len(data_tmp[3].strip()) > 0:
-            dewtemp_lst.append(float(data_tmp[3]))
-        if len(data_tmp[8].strip()) > 0:
-            theta_lst.append(float(data_tmp[8]))
-        if len(data_tmp[9].strip()) > 0:
-            theta_e_lst.append(float(data_tmp[9]))
-        if len(data_tmp[10].strip()) > 0:
-            vtheta_lst.append(float(data_tmp[10]))
+        if len(work[0].strip()) > 0:
+            pres_lst.append(float(work[0]))
+        if len(work[1].strip()) > 0:
+            height_lst.append(float(work[1]))
+        if len(work[2].strip()) > 0:
+            temp_lst.append(float(work[2]))
+        if len(work[3].strip()) > 0:
+            dewtemp_lst.append(float(work[3]))
+        if len(work[5].strip()) > 0:
+            mixr_lst.append(float(work[5]))
+        if len(work[8].strip()) > 0:
+            theta_lst.append(float(work[8]))
+        if len(work[9].strip()) > 0:
+            theta_e_lst.append(float(work[9]))
+        if len(work[10].strip()) > 0:
+            vtheta_lst.append(float(work[10]))
 
     # python list => numpy ndarray
     sonde_data = SondeData()
@@ -117,6 +124,7 @@ def __parse_emagram_text(title: str, sonde_txt: list) -> SondeData:
     sonde_data.height  = np.array(height_lst , dtype=np.float64)
     sonde_data.temp    = np.array(temp_lst   , dtype=np.float64)
     sonde_data.dewtemp = np.array(dewtemp_lst, dtype=np.float64)
+    sonde_data.mixr    = np.array(mixr_lst   , dtype=np.float64)
     sonde_data.theta   = np.array(theta_lst  , dtype=np.float64)
     sonde_data.theta_e = np.array(theta_e_lst, dtype=np.float64)
     sonde_data.vtheta  = np.array(vtheta_lst , dtype=np.float64)
@@ -224,8 +232,15 @@ def __calc_theta_es(sonde_data: SondeData):
     # 気圧 [hPa]
     p = sonde_data.pres[0:len(sonde_data.theta_e)]
 
+    # 混合比 [g/kg]
+    mixr = sonde_data.mixr[0:len(sonde_data.theta_e)]
+    mixr = mixr / 1000.0  # 単位換算 [g/kg] -> [kg/kg]
+
+    # 水蒸気圧 [hPa]
+    e = pyema_util.calc_e(mixr, p)
+
     # 飽和相当温位 [K]
-    sonde_data.theta_es = pyema_util.calc_theta_es(t, p)
+    sonde_data.theta_es = pyema_util.calc_theta_es(t, p, e)
 
 
 def run_pyema(param: dict):
@@ -256,7 +271,7 @@ if __name__ == '__main__':
         'obs_time': {
             'year' : '2020',
             'month': '2'   ,
-            'time' : '100'
+            'time' : '1700'
         },
         'axis_h': {
             'type': 'pt',
